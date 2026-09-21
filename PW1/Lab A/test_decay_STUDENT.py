@@ -20,6 +20,7 @@ def test_rejects_negative_rate():
         simulate(1000,-0.4)
 
 
+
 def test_matches_law():
     N0 = 1000
     lam = 0.4
