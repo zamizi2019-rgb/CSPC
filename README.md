@@ -16,9 +16,9 @@ conda activate cspc
 - Added tests and a speed comparison between the two.
 
 **Speed comparison (loop vs NumPy):**
-- loop : 1.98184 s
-- numpy : 0.0001789 s
-- speed-up: about 11650.43 times faster
+- loop : `1.98184 s`
+- numpy : `0.0001789 s`
+- speed-up: about `11650.43` times faster
 
 **Tests:** all passing? yes
 
@@ -45,3 +45,39 @@ The observed data showed a decreasing radioactive decay pattern. The observed da
 ### Snakemake
 
 The Snakemake pipeline takes `decay_observed.csv` as input and runs `plot_STUDENT.py` to produce `figure.png`. It only reruns the script when the input or script has changed.
+
+
+
+### PW2 - Lab A: Motion from Tracking Data
+
+### What I built
+
+- Read the falling-object data from freefall.csv.
+- Calculated velocity and acceleration using np.gradient.
+- Integrated acceleration back to velocity and position using cumulative_trapezoid.
+- Created motion.png with position, velocity, and acceleration plots.
+
+### Results
+
+- Mean acceleration: `-8.5797 m/s²`
+- Acceleration standard deviation: `28.71 m/s²`
+- Largest difference between original and recovered position: `0.7846 m`
+
+### Noise observation
+
+The acceleration is much noisier than the position because differentiation amplifies small measurement noise, especially after applying it twice.
+
+### Conclusion
+
+- The measured acceleration was not very far from the expected value `-8.58`.
+- Differentiation made the noise much larger in the acceleration data.
+- Integrating the acceleration back recovered the original position within about 1 metre.
+- The final results were plotted in motion.png.
+
+### Bonus - 2D Tracked Trajectory
+
+- Read trajectory.csv containing time, x, and y coordinates.
+- Calculated velocity separately in the x and y directions using np.gradient.
+- Calculated the speed using sqrt(vx² + vy²).
+- Plotted the 2D trajectory and speed over time.
+- The bonus results were saved as trajectory.png and speed.png.
