@@ -45,8 +45,8 @@ axs[2].set_xlabel("Time")
 axs[2].grid()
 plt.tight_layout()
 plt.savefig("motion.png")
-#add ex
 
+#add ex
 data2 = np.loadtxt("trajectory.csv",delimiter=",",skiprows=1)
 
 time = data2[:,0]

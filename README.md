@@ -48,7 +48,7 @@ The Snakemake pipeline takes `decay_observed.csv` as input and runs `plot_STUDEN
 
 
 
-### PW2 - Lab A: Motion from Tracking Data
+## PW2 - Lab A: Motion from Tracking Data
 
 ### What I built
 
