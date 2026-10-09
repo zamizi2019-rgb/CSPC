@@ -81,3 +81,40 @@ The acceleration is much noisier than the position because differentiation ampli
 - Calculated the speed using sqrt(vx² + vy²).
 - Plotted the 2D trajectory and speed over time.
 - The bonus results were saved as trajectory.png and speed.png.
+
+
+
+## PW2 - Lab B: Optimization in Chemistry
+
+### What I built
+
+- Compared Gradient Descent, Newton’s method, and SLSQP on two functions.
+- Fitted a first-order reaction rate constant using kinetics.csv.
+- Calculated chemical equilibrium using Newton’s method and SLSQP.
+- Created equilibrium.png showing H2, I2, HI, and the equilibrium point.
+- Found the titration equivalence point using np.gradient and np.argmax.
+- Created kinetics.png and titration.png.
+
+### Results
+
+- Reaction rate constant: approximately 0.25.
+- Equilibrium constant: K = 15.6.
+- Equilibrium extent: x ≈ 0.664.
+- H2 at equilibrium: 0.336 mol.
+- I2 at equilibrium: 0.336 mol.
+- HI at equilibrium: 1.328 mol.
+- Titration equivalence point: approximately 50 mL.
+
+### Observations
+
+- Different optimization methods can give different results depending on the starting point and learning rate.
+- The H2 and I2 lines overlap because their initial amounts are equal.
+- The equilibrium point is determined by the equilibrium constant, not by the intersection of the plotted lines.
+- Differentiation helps identify the steepest part of the titration curve.
+
+### Conclusion
+
+- Optimization can minimize functions and fit experimental data.
+- Newton’s method and SLSQP can both be used to find chemical equilibrium.
+- Numerical differentiation can identify the titration equivalence point.
+- The results demonstrate how numerical methods are applied to chemistry problems.
