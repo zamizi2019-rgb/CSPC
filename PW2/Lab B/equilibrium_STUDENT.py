@@ -14,6 +14,45 @@ from scipy.optimize import newton, minimize
 
 K = 15.6
 a = b = 1.0
+def k_imbalance(x):
+    return (2*x)**2/((a-x)*(b-x)) - K
+
+x_newton=newton(k_imbalance,0.5)
+
+def error_sq(x):
+    return k_imbalance(x[0])**2
+
+result=minimize(error_sq,[0.5],method="SLSQP",bounds=[(0, 0.999)])
+
+x_slsqp=result.x[0]
+print("Newton: ", x_newton)
+print("SLSQP: ", x_slsqp)
+
+
+
+H2_eq=a-x_newton
+I2_eq=b-x_newton
+HI_eq=2*x_newton
+
+print("H2 at equilibrium:",H2_eq,"moles")
+print("I2 at equilibrium:",I2_eq,"moles")
+print("HI at equilibrium:",HI_eq,"moles")
+
+
+
+x_value=np.linspace(0,0.999,200)
+
+plt.plot(x_value,a-x_value,label="H2")
+plt.plot(x_value,b-x_value,label="I2",linestyle="--")
+plt.plot(x_value,2*x_value,label="HI")
+plt.axvline(x_newton,color="black",linestyle="--",label="Equilibrium")
+
+plt.xlabel("Reaction extent x (mol)")
+plt.ylabel("Amount in moles")
+plt.legend()
+plt.tight_layout()
+plt.savefig("equilibrium.png")
+
 
 # TODO 1: write k_imbalance(x) = (2x)^2/((a-x)(b-x)) - K.
 #         It equals zero exactly at equilibrium.
