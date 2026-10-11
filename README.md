@@ -118,3 +118,38 @@ The acceleration is much noisier than the position because differentiation ampli
 - Newton’s method and SLSQP can both be used to find chemical equilibrium.
 - Numerical differentiation can identify the titration equivalence point.
 - The results demonstrate how numerical methods are applied to chemistry problems.
+
+## PW3 - Part 1: Statistical Analysis of Heart Disease Data
+
+### What I built
+
+- Loaded the heart disease dataset using pandas.
+- Printed the dataset shape and the first rows.
+- Selected four continuous variables: age, chol, trestbps, and thalach.
+- Created Health_graphs.png to visualise the distributions using histograms.
+- Created Distribution.png to check normality using Q-Q plots.
+- Compared the observed values with the theoretical quantiles of a normal distribution.
+
+### Results
+
+- Age: approximately normally distributed.
+- Chol (cholesterol): not normally distributed, with a noticeable deviation in the upper tail.
+- Trestbps (resting blood pressure): approximately normal in the central part, but with deviations at the tails.
+- Thalach (maximum heart rate): approximately normally distributed, with some deviations at the tails.
+
+### Observations
+
+- The histograms help show the spread and shape of each variable.
+- In a Q-Q plot, points close to the reference line indicate that the data are consistent with a normal distribution.
+- Age and thalach follow the reference line relatively closely.
+- Chol has a strong deviation at the upper end and contains an unusually high value.
+- Trestbps follows the line in its central part but shows some deviations at the extremes.
+- Visual inspection alone cannot conclusively determine normality; a statistical test can provide additional evidence.
+
+### Conclusion
+
+- Pandas was used to load and explore the dataset.
+- Histograms and Q-Q plots were used to investigate the distributions of four continuous variables.
+- Age and thalach appear closest to a normal distribution based on the Q-Q plots.
+- Chol shows the clearest evidence of non-normality, while trestbps has some deviations.
+- These findings can help guide the choice of statistical methods in Session 2.
