@@ -1,0 +1,2 @@
+train_rmse,test_rmse,test_mae,train_r2,train_adj_r2,test_r2
+10.002,11.191,8.895,0.61,0.606,0.58

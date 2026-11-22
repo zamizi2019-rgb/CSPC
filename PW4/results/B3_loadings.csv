@@ -1,0 +1,14 @@
+,PC1,PC2
+alcohol,0.144,0.484
+malic_acid,-0.245,0.225
+ash,-0.002,0.316
+alcalinity_of_ash,-0.239,-0.011
+magnesium,0.142,0.3
+total_phenols,0.395,0.065
+flavanoids,0.423,-0.003
+nonflavanoid_phenols,-0.299,0.029
+proanthocyanins,0.313,0.039
+color_intensity,-0.089,0.53
+hue,0.297,-0.279
+od280/od315_of_diluted_wines,0.376,-0.164
+proline,0.287,0.365
