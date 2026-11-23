@@ -1,0 +1,3 @@
+seismogram_A.csv: P at 108.42 s, S at 144.08 s, distance 306 km, origin at 59.0 s, PGV 1.51 cm/s, magnitude 6.7.
+seismogram_B.csv: P at 84.25 s, S at 102.43 s, distance 156 km, origin at 59.1 s, PGV 0.57 cm/s, magnitude 5.4.
+Closer earthquake: seismogram_B.csv. Stronger earthquake: seismogram_A.csv.

@@ -492,7 +492,7 @@ Loadings (sorted):
 | ash | 0.316 | | |
 | magnesium | 0.300 | | |
 | malic_acid | 0.225 | | |
-
+_index_vs_freq
 - PC1 pushes a wine to the positive side when it is rich in phenolic compounds (flavanoids, total phenols, proanthocyanins, high OD280) and to the negative side when it has high nonflavanoid phenols, malic acid and alkalinity of ash. It is mainly a "phenol content" axis.
 - PC2 pushes a wine to the positive side when it has a strong colour intensity, high alcohol, proline, ash and magnesium, and to the negative side when it has a high hue. It is mainly a "colour and strength" axis.
 
@@ -583,3 +583,138 @@ Split: test_size = 0.25, random_state = 42, stratify = cultivar (45 test wines).
 - PCA on the scaled data needs 8 components for 90% of the variance, but the first two components already show the three groups.
 - The elbow curve gives k = 3, and the clusters agree with the real cultivars at 96.6%.
 - The whole PW4 is reproduced with one command: `snakemake --cores 1`.
+
+## PW 5 - Signal Processing: Where Was the Earthquake, and How Strong?
+
+### What I built
+
+- `analyse.py`: `bandpass`, `envelope` and `analyse(csv_file)`, which does the filtering, envelopes, arrival times, distance, PGV and magnitude. It runs unchanged on both records and saves `results/events.csv`.
+- `report.py`: reads `results/events.csv` and writes `results/report.txt`.
+- `figures.py`: all the figures of steps 1-8 for seismogram A.
+- A `Snakefile` with the rules `analyse`, `report` and `all`.
+
+Data: three channels (Z, N, E) in m/s, 100 Hz, 300 s. P-waves travel at 6.2 km/s, S-waves at 3.6 km/s.
+
+### 1. The record
+
+![Channels](PW5/figures/01_channels.png)
+
+- The first, weaker shaking (about 108 s) is clearest on Z. The later, stronger shaking (about 144 s) is largest on N and E (about 14-15 mm/s against 5.7 mm/s on Z).
+- The station is not completely still before the earthquake.
+
+![First 60 s](PW5/figures/01b_zoom_first60s.png)
+
+- In the first 60 s there are slow oscillations of about ±5 µm/s with periods of 5-10 s, plus fast low-level noise (rms about 2 µm/s on every channel). This is the background noise, about 1000 times smaller than the earthquake.
+
+### 2. The spectrum
+
+![Spectrum vs index and frequency](PW5/figures/02a_spectrum_index_vs_freq.png)
+
+- The FFT gives N numbers with no physical axis. `fftfreq(N, 1/fs)` converts the index to a frequency in Hz (k * fs / N), with the negative frequencies in the second half of the array.
+- The spectrum is mirrored around 0 Hz because the signal is real: X[-f] is the complex conjugate of X[f], so the negative frequencies contain no new information.
+
+![Spectra, log-log](PW5/figures/02b_spectra_loglog.png)
+
+- The quiet part (first 60 s) has its strongest noise at about 0.1-0.3 Hz (peak at 0.15 Hz): this is the microseism. Above about 1 Hz it is a flat floor of about 1e-8 m/s.
+- The earthquake adds energy over a broad band. The ratio between the whole record and the quiet part is the largest at 0.5-10 Hz:
+
+| band | mean amplitude ratio (whole record / quiet part) |
+|---|---|
+| 0.05-0.5 Hz | about 100 |
+| 0.5-2 Hz | about 1100 |
+| 2-10 Hz | about 750 |
+| 10-50 Hz | about 80 |
+
+- The two spectra are normalised by different lengths, so their absolute levels are only roughly comparable.
+
+### 3. Inverse transform and band-pass filter
+
+- `np.allclose(np.fft.ifft(np.fft.fft(Z)).real, Z)` is `True`. Filtering in the frequency domain relies on this: the transform is exactly invertible, so I can delete elements of the spectrum and come back to a time signal.
+- `bandpass(x, fs, a, b)` sets `X` to zero where `|f| < a` or `|f| > b` (both sides of the spectrum) and keeps `.real`.
+- Cut-offs: a = 0.5 Hz removes the microseism peak (0.1-0.3 Hz). b = 10 Hz is where the earthquake spectrum falls toward the flat noise floor, and the ratio to the noise drops. Between 0.5 and 10 Hz the earthquake is 700-1100 times above the noise.
+
+![Raw and filtered Z](PW5/figures/03b_raw_vs_filtered.png)
+
+![Removed part](PW5/figures/03c_removed.png)
+
+- `Z - clean` is almost zero before 100 s (rms 5 µm/s) and large during the earthquake (up to ±3 mm/s). What I recognise in it is the earthquake itself: the high-frequency burst of the P-wave (above 10 Hz) and the large slow swings at 145-180 s (below 0.5 Hz).
+- So this filter also removes real signal, not only noise. It is fine for picking arrival times, but amplitudes should be measured on the raw record, so PGV is computed on the raw data.
+
+### 4. The envelope
+
+![Z envelope with three windows](PW5/figures/04a_envelopes_windows.png)
+
+![Z and horizontal envelopes](PW5/figures/04b_envelopes_Z_H.png)
+
+- Window too short (0.05 s): the envelope is jagged and follows single oscillations, so one isolated spike can cross a threshold and the arrival time becomes noise-sensitive.
+- Window too long (5 s): the envelope is smooth but the onset is smeared. It starts to rise about 2 s before the real onset, so the picked arrival is too early, and close events blur together.
+- 0.5 s is a compromise: smooth enough, with a sharp onset.
+
+### 5. Arrival times
+
+![Picks](PW5/figures/05_picks.png)
+
+| quantity | value |
+|---|---|
+| tP (Z envelope > 5 % of its maximum) | 108.42 s |
+| tS (horizontal envelope > 10 % of its maximum, after tP + 2 s) | 144.08 s |
+| maximum of the horizontal envelope (`find_peaks`) | 152.03 s |
+
+- The arrival time is the start of the wave, because both waves leave the source at the same moment and the travel time is measured from the start. The maximum is only the largest swing somewhere inside the S wave train, so it depends on the source, not only on the path.
+- With the maximum, `tS - tP` would be 43.6 s instead of 35.7 s, and R would be about 374 km instead of 306 km (about 68 km too far).
+
+### 6. Distance
+
+`R = (tS - tP) / (1/vS - 1/vP) = 35.66 s / 0.1165 s/km = 306 km`.
+
+- The sensitivity is `dR/dtS = 1 / 0.1165 = 8.6 km/s`. An error of ±1 s on tS changes R to between 297.5 and 314.7 km (about ±3 %).
+- Origin time: `tP - R/vP = 108.42 - 49.4 = 59.0 s` after the start of the record.
+
+### 7. The spectrogram
+
+![Spectrogram of Z](PW5/figures/07_spectrogram.png)
+
+- Before about 108 s there is only low-level noise.
+- The P-wave starts at about 108 s and is broadband, with energy up to 10 Hz (dominant frequency about 2.3 Hz in the first 10 s). It arrives with the highest frequencies.
+- The S-wave starts at about 144 s and brings a strong band below about 3 Hz.
+- The later, slower surface waves are the lowest: a bright band below about 1 Hz at 150-180 s (dominant about 0.4 Hz). At 306 km the S-wave and the surface waves overlap in time.
+- The single spectrum of step 2 shows which frequencies are in the record, but not when. The spectrogram shows how the frequencies change with time (high first, then low), which lets me tell the wave types apart. The price is a coarse frequency resolution (about 0.4 Hz with `nperseg = 256`).
+
+### 8. The magnitude
+
+| quantity | value |
+|---|---|
+| PGV (maximum of `sqrt(N² + E²)`, raw record) | 1.51 cm/s |
+| R | 306 km |
+| M | 6.66 |
+
+- The term `log10 R` corrects for the decay of ground motion with distance: the same earthquake gives a smaller PGV farther away. If I ignored it, the same earthquake recorded twice as far away would get a magnitude lower by `log10(2) / 0.55 = 0.55` units, only because the station is farther.
+- One magnitude unit more means `PGV` is `10^0.55 = 3.55` times larger at the same distance.
+
+### 9. The whole system
+
+- `analyse(csv_file)` runs unchanged on both records, and `report.py` writes the summary.
+
+| record | tP (s) | tS (s) | R (km) | origin time (s) | PGV (cm/s) | M |
+|---|---|---|---|---|---|---|
+| A | 108.42 | 144.08 | 306 | 59.0 | 1.51 | 6.7 |
+| B | 84.25 | 102.43 | 156 | 59.1 | 0.57 | 5.4 |
+
+- Earthquake B was closer (156 km against 306 km). Earthquake A was stronger (M 6.7 against 5.4).
+- Both origin times are about 59 s, which is a good consistency check of the picks and of the two velocities.
+
+### 10. Snakemake
+
+The Snakefile has three rules: `analyse` (needs both data files and `analyse.py`, produces `results/events.csv`), `report` (needs `results/events.csv` and `report.py`, produces `results/report.txt`) and `all`.
+
+1. After deleting `results/`, `snakemake --cores 1` runs `analyse` and then `report`.
+2. Running it again, Snakemake reports that there is nothing to be done, because all outputs exist and are newer than their inputs.
+3. Changing only the wording in `report.py` reruns only `report`, because `results/events.csv` does not depend on `report.py`.
+4. Changing the cut-off b in `analyse.py` reruns `analyse` and then `report`, because the new `events.csv` is newer than `report.txt`. This is what I want from a pipeline: only what depends on the change is recomputed, and nothing downstream is left out of date.
+
+### Conclusion
+
+- The earthquake of record A happened about 306 km away with magnitude 6.7. Record B is closer (156 km) and weaker (M 5.4).
+- The arrival time is the start of the shaking, not its maximum. Using the maximum would have made the distance about 68 km too large.
+- The FFT lets me remove the microseism noise by deleting frequencies, but a narrow band-pass also removes real signal, so amplitudes are taken on the raw record.
+- One command, `snakemake --cores 1`, reproduces the whole analysis.
